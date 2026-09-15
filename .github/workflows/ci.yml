@@ -1,0 +1,44 @@
+name: Windows build and dependency audit
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Prepare verified installer compiler
+        run: ./scripts/prepare_inno.ps1
+      - name: Locked restore, Release tests, publish, EXE smoke test and installer
+        run: ./build.ps1
+      - name: Verify reproducible example
+        run: ./scripts/generate_example.ps1 -VerifyOnly
+
+  dependency-audit:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - name: Audit direct and transitive packages; fail on unavailable data
+        run: ./scripts/audit_dependencies.ps1

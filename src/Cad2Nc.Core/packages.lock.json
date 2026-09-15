@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "ACadSharp": {
+        "type": "Direct",
+        "requested": "[3.7.1, )",
+        "resolved": "3.7.1",
+        "contentHash": "+feXWAswHouS4ev2YAKa/oh/94dwtcI5AZ3Gb6UfpcYzYViCYUEGdqGw8NZYEk9q7kAHtbQmNbgGLxqi+q7U7A=="
+      },
+      "NetTopologySuite": {
+        "type": "Direct",
+        "requested": "[2.6.0, )",
+        "resolved": "2.6.0",
+        "contentHash": "1B1OTacTd4QtFyBeuIOcThwSSLUdRZU3bSFIwM8vk36XiZlBMi3K36u74e4OqwwHRHUuJC1PhbDx4hyI266X1Q=="
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>ACadSharp</id>
+    <version>3.7.1</version>
+    <authors>DomCr</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/DomCR/ACadSharp</projectUrl>
+    <description>C# library to read/write cad files like dxf/dwg.</description>
+    <copyright>Copyright (c) 2026 Albert Domenech</copyright>
+    <tags>C# Dwg Dxf</tags>
+    <repository type="git" url="https://github.com/DomCR/ACadSharp" commit="d7dc111023477d8a9fffc2153139459c95b4f345" />
+    <dependencies>
+      <group targetFramework="net10.0" />
+      <group targetFramework=".NETFramework4.8">
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0" />
+      <group targetFramework="net9.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Encoding.CodePages" version="9.0.6" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="System.Text.Encoding.CodePages" version="9.0.6" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

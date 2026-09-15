@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "CommunityToolkit.Mvvm": {
+        "type": "Direct",
+        "requested": "[8.4.0, )",
+        "resolved": "8.4.0",
+        "contentHash": "tqVU8yc/ADO9oiTRyTnwhFN68hCwvkliMierptWOudIAvWY1mWCh5VFh+guwHJmpMwfg0J0rY+yyd5Oy7ty9Uw=="
+      },
+      "ACadSharp": {
+        "type": "Transitive",
+        "resolved": "3.7.1",
+        "contentHash": "+feXWAswHouS4ev2YAKa/oh/94dwtcI5AZ3Gb6UfpcYzYViCYUEGdqGw8NZYEk9q7kAHtbQmNbgGLxqi+q7U7A=="
+      },
+      "NetTopologySuite": {
+        "type": "Transitive",
+        "resolved": "2.6.0",
+        "contentHash": "1B1OTacTd4QtFyBeuIOcThwSSLUdRZU3bSFIwM8vk36XiZlBMi3K36u74e4OqwwHRHUuJC1PhbDx4hyI266X1Q=="
+      },
+      "cad2nc.core": {
+        "type": "Project",
+        "dependencies": {
+          "ACadSharp": "[3.7.1, )",
+          "NetTopologySuite": "[2.6.0, )"
+        }
+      }
+    }
+  }
+}

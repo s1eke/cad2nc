@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/Cad2Nc.Core/Cad2Nc.Core.csproj" />
+  <Project Path="src/Cad2Nc.Application/Cad2Nc.Application.csproj" />
+  <Project Path="src/Cad2Nc.App/Cad2Nc.App.csproj" />
+  <Project Path="src/Cad2Nc.Cli/Cad2Nc.Cli.csproj" />
+  <Project Path="tests/Cad2Nc.Tests/Cad2Nc.Tests.csproj" />
+</Solution>

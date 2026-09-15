@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.nc text eol=crlf
+*.dxf -text
+*.png binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.zip binary
+*.exe binary
+# License hashes describe original bytes; checkout must never normalize them.
+LICENSES/** -text
+installer/InnoSetup-LICENSE.txt -text

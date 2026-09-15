@@ -1,0 +1,56 @@
+{
+  "application_version": "2.6.4",
+  "automatic_safety_layering": false,
+  "board_thickness_mm": 17,
+  "contours": 3,
+  "cut_order": "depth-major",
+  "cut_sides": {
+    "C0002": "OUTSIDE",
+    "C0003": "OUTSIDE"
+  },
+  "depth_passes": [
+    -0.1
+  ],
+  "final_z": -0.1,
+  "importer": "ACadSharp 3.7.1",
+  "layered_cutting": false,
+  "leave_skin_mm": 0,
+  "machine_profile": "LncRouter",
+  "origin": [
+    1000,
+    2000
+  ],
+  "origin_mode": "SheetLowerLeft",
+  "outer_candidates": [
+    "C0001"
+  ],
+  "output": "examples/lnc_sheet_mm-2.6.4.nc",
+  "prioritize_part_stability": true,
+  "selected_contours": 2,
+  "source": "tests/fixtures/lnc_sheet_mm.dxf",
+  "stats": {
+    "height_mm": 803,
+    "net_offset_mm": 2,
+    "source_contour_count": 2,
+    "toolpath_count": 2,
+    "total_length_mm": 2617.6722024365613,
+    "width_mm": 703
+  },
+  "surface_z": 17,
+  "toolpaths": 2,
+  "warnings": [
+    "Table APPID not found in the document",
+    "Table STYLE not found in the document",
+    "Table LTYPE not found in the document",
+    "Table LAYER not found in the document",
+    "Table UCS not found in the document",
+    "Table VIEW not found in the document",
+    "Table BLOCK_RECORD not found in the document",
+    "Table DIMSTYLE not found in the document",
+    "Table VPORT not found in the document",
+    "The root dictionary could not be found.",
+    "ACadSharp.Tables.Layer table reference with handle:  | name: SHEET not found for ACadSharp.Entities.LwPolyline with handle …",
+    "ACadSharp.Tables.Layer table reference with handle:  | name: CUT not found for ACadSharp.Entities.LwPolyline with handle …",
+    "稳定加工顺序可降低零件提前切断后的移动风险，但软件未建模压板、真空、夹具、桥位或底部薄皮，仍需确认可靠装夹。"
+  ]
+}
