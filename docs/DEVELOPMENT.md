@@ -4,7 +4,19 @@
 
 ## GitHub 自动检查
 
-Windows 工作流在 push、pull request 和手动触发时运行两个独立作业：完整构建及示例复现、依赖审计。权限只有 `contents: read`，不发布 Release。建议将两个作业都设为合并前必需检查。
+Windows 工作流在 push、pull request 和手动触发时运行两个独立作业：完整构建及示例复现、依赖审计。构建和审计只有 `contents: read` 权限。建议将两个作业都设为合并前必需检查；测试报告会保存在 Actions 的构建产物中。
+
+推送 `v主版本.次版本.修订号` tag 时，两个作业全部通过后，额外的发布作业自动创建 GitHub Release，提供 Windows x64 安装 EXE、对应源码 ZIP 及两份 SHA-256 校验文件。发布作业单独使用 `contents: write` 和 GitHub 自动提供的 `GITHUB_TOKEN`，无需额外配置个人访问令牌；分支 push、pull request 和手动检查不会发布。
+
+tag 必须与 `Directory.Build.props` 中的 `Version` 完全对应，`AssemblyVersion`、`FileVersion` 也须同步为该版本加 `.0`，并提供 `docs/RELEASE-版本.md`。例如当前 `2.6.4` 对应 `v2.6.4`。发布前先提交并推送改动，再执行：
+
+```powershell
+$version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+git tag -a "v$version" -m "CAD2NC $version"
+git push origin "v$version"
+```
+
+版本不匹配、测试失败、审计不可用、安装包或源码校验失败都会阻止发布。上传先写草稿，全部附件上传成功才公开；失败后可在 Actions 重跑以继续同一草稿。已经公开的 Release 保持原有下载文件，再次发布应使用新的版本和 tag。发布流程的本地验证可运行 `./scripts/test_release_workflow.ps1`，它使用模拟 GitHub CLI，不会创建真实 Release。
 
 独立审计命令：
 

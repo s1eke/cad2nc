@@ -18,6 +18,8 @@ $compiler = if ($InnoSetupCompiler) { [System.IO.Path]::GetFullPath($InnoSetupCo
 # changes the pinned compiler version.
 & (Join-Path $projectRoot 'scripts/prepare_inno.ps1') -VerifyOnly -CompilerPath $compiler
 $appVersion = ([xml](Get-Content -LiteralPath (Join-Path $projectRoot 'Directory.Build.props') -Raw)).Project.PropertyGroup.Version
+$releaseNotes = Join-Path $projectRoot "docs/RELEASE-$appVersion.md"
+if (-not (Test-Path -LiteralPath $releaseNotes -PathType Leaf)) { throw "Release notes missing: $releaseNotes" }
 $localDotnet = Join-Path $projectRoot '.tools/dotnet/dotnet.exe'
 $dotnet = if (Test-Path -LiteralPath $localDotnet) { $localDotnet } else { (Get-Command dotnet -ErrorAction Stop).Source }
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
@@ -57,7 +59,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/PORTABLE.md') -Destination (Join-Path $stage '使用说明.md')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/PORTABLE.md') -Destination (Join-Path $stage 'PORTABLE.md')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/VALIDATION.md') -Destination (Join-Path $stage 'VALIDATION.md')
-    Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/RELEASE-2.6.4.md') -Destination (Join-Path $stage '更新说明-2.6.4.md')
+    Copy-Item -LiteralPath $releaseNotes -Destination (Join-Path $stage "更新说明-$appVersion.md")
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/INSTALL.md') -Destination (Join-Path $stage '安装说明.md')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/INSTALL.md') -Destination (Join-Path $stage 'INSTALL.md')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/THIRD_PARTY_V2.md') -Destination (Join-Path $stage 'THIRD_PARTY_NOTICES.md')

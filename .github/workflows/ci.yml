@@ -1,4 +1,4 @@
-name: Windows build and dependency audit
+name: Windows CI and release
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 defaults:
   run:
     shell: pwsh
@@ -16,19 +20,57 @@ jobs:
   build:
     runs-on: windows-2025
     timeout-minutes: 30
+    outputs:
+      version: ${{ steps.release-metadata.outputs.version }}
     steps:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
+      - name: Validate application and tag versions
+        id: release-metadata
+        env:
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
+        run: |
+          $release = ./scripts/release_metadata.ps1 -Tag $env:RELEASE_TAG
+          "version=$($release.Version)" >> $env:GITHUB_OUTPUT
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
       - name: Prepare verified installer compiler
         run: ./scripts/prepare_inno.ps1
+      - name: Test release validation and publication failure handling
+        run: ./scripts/test_release_workflow.ps1
       - name: Locked restore, Release tests, publish, EXE smoke test and installer
         run: ./build.ps1
       - name: Verify reproducible example
         run: ./scripts/generate_example.ps1 -VerifyOnly
+      - name: Validate installer and release assets
+        run: |
+          $release = ./scripts/release_metadata.ps1 -ArtifactsDirectory dist
+          ./scripts/test_installer.ps1 -InstallerPath "dist/CAD2NC-Setup-$($release.Version)-x64.exe" -StaticOnly
+      - name: Upload release downloads
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-release-${{ github.sha }}
+          path: |
+            dist/CAD2NC-Setup-*.exe
+            dist/CAD2NC-Setup-*.exe.sha256
+            dist/CAD2NC-source.zip
+            dist/CAD2NC-source.zip.sha256
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
+          retention-days: 14
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-tests-${{ github.sha }}
+          path: build/test-results/*.trx
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 14
 
   dependency-audit:
     runs-on: windows-2025
@@ -42,3 +84,25 @@ jobs:
           global-json-file: global.json
       - name: Audit direct and transitive packages; fail on unavailable data
         run: ./scripts/audit_dependencies.ps1
+
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [build, dependency-audit]
+    runs-on: windows-2025
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: windows-release-${{ github.sha }}
+          path: release-assets
+      - name: Publish verified downloads to GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/publish_github_release.ps1 -Tag $env:RELEASE_TAG -Repository $env:RELEASE_REPOSITORY -ArtifactsDirectory release-assets
