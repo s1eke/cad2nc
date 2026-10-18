@@ -30,6 +30,15 @@
     <Content Remove="Assets\**" />
     <Content Include="Assets\CAD2NC.ico;Assets\CAD2NC.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+  <Target Name="GenerateVersionedApplicationManifest" BeforeTargets="PrepareForBuild;GetNewAppManifestValues">
+    <PropertyGroup>
+      <ApplicationManifest>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'versioned.app.manifest'))</ApplicationManifest>
+    </PropertyGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/app.manifest" DestinationFiles="$(ApplicationManifest)" />
+    <XmlPoke XmlInputPath="$(ApplicationManifest)" Query="/*[local-name()='assembly']/*[local-name()='assemblyIdentity']/@version" Value="$(FileVersion)" />
+    <ItemGroup><FileWrites Include="$(ApplicationManifest)" /></ItemGroup>
+  </Target>
   <!-- The unpackaged XAML targets generate these in the build directory but do
        not include them in the .NET SDK publish item list. -->
   <Target Name="PublishWinUiResources" AfterTargets="ComputeFilesToPublish">

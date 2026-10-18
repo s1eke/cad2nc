@@ -1,4 +1,4 @@
-# CAD2NC 2.6.4 · WinUI 3 加工工作台
+# CAD2NC 2.7.0 · WinUI 3 加工工作台
 
 中文 Windows 加工工作台：直接读取 DWG / DXF，识别闭合轮廓，配置工艺，预览成品边和刀心路线，生成可配置的宝元 LNC / 通用 Fanuc NC；也可打开已有 NC 查看程序参数、源码与二维轨迹。
 
@@ -6,7 +6,7 @@
 
 ## 启动与操作
 
-在本仓库的 **Releases** 页面下载 `CAD2NC-Setup-2.6.4-x64.exe` 后运行，按中文向导安装，再从桌面快捷方式或开始菜单启动。安装包会自动区分首次安装、更新和同版本重新安装，显示对应说明；发现电脑上的版本更新时拒绝覆盖。默认安装到 `%LOCALAPPDATA%\Programs\CAD2NC`，仅供当前用户使用，无需管理员权限，运行依赖已经附带。详见 [安装、升级与卸载](docs/INSTALL.md)。
+在本仓库的 [Releases](https://github.com/s1eke/cad2nc/releases) 页面下载 `CAD2NC-Setup-2.7.0-x64.exe` 后运行，按中文向导安装，再从桌面快捷方式或开始菜单启动。安装包会自动区分首次安装、更新和同版本重新安装，显示对应说明；发现电脑上的版本更新时拒绝覆盖。默认安装到 `%LOCALAPPDATA%\Programs\CAD2NC`，仅供当前用户使用，无需管理员权限，运行依赖已经附带。详见 [安装、升级与卸载](docs/INSTALL.md)。
 
 将单个 **DWG / DXF / NC 拖到窗口工作区**即可加载；也可拖到桌面图标，应用会启动或切回已有窗口打开文件。打开文件入口还支持已保存的加工任务。扩展名不区分大小写。已有任务未保存时会先提示保存。一次打开一个文件，连续打开时请等待当前打开流程完成；拖放不会自动生成刀路或导出 NC。
 
@@ -17,7 +17,7 @@
 3. **导出 NC**：生成有效结果后，顶部「导出 NC」按钮使用强调色，生成与导出的位置保持不变。默认写入 Windows「文档」下的 `CAD2NC\NC`，也可通过更多菜单另存到指定位置。输出为 ASCII / CRLF。
 4. **打印母板标签**：生成有效结果后点击「打印标签」。单板打印 1 张，多母板默认全部打印，也可只打印结果区当前母板。标签面向加工后的分拣，使用黑白热敏布局突出订单标识、板号（第几块/共几块）、板材尺寸、板形示意和离线二维码；轮廓图内的黑点表示定位点。打印机驱动需预先配置对应标签纸规格。
 
-[完整中文使用说明](docs/PORTABLE.md) 包含机床与工件设置、启动默认配置、任务保存、参数导入导出、外部 NC 查看和命令行用法。2.6.4 默认针对当前宝元木工开料机；仅适配闭合轮廓切割，不含钻孔、开槽、排版或自动翻面。
+[完整中文使用说明](docs/PORTABLE.md) 包含机床与工件设置、启动默认配置、任务保存、参数导入导出、外部 NC 查看和命令行用法。2.7.0 默认针对当前宝元木工开料机；仅适配闭合轮廓切割，不含钻孔、开槽、排版或自动翻面。新增圆孔自动内侧加工及发布改进见 [2.7.0 更新说明](docs/RELEASE-2.7.0.md)。
 
 ## 工作台
 
@@ -33,7 +33,7 @@
 - 说明：未打开文件也能阅读刀具补偿、刀径、转速进给、深度、安全高度、原点与控制器适配；当前任务附带实际参数及返回修改入口。页面没有检查进度或确认操作。
 - 设置：整页滚动卡片包含外观、文件保存、参数配置和关于。原生 Fluent 外观可跟随系统，或选择浅色、深色；画布保持深色。
 
-以下为历史版本界面截图，布局和参数入口以当前 2.6.4 应用为准。
+以下为历史版本界面截图，布局和参数入口以当前 2.7.0 应用为准。
 
 [查看浅色工作台](docs/images/workbench-single-page.png) · [查看深色工作台](docs/images/workbench-dark.png) · [查看窄屏工作台](docs/images/workbench-compact.png) · [查看 NC 阅读布局](docs/images/nc-reader.png) · [查看设置页](docs/images/settings-page.png)
 
@@ -102,7 +102,7 @@ Windows x64、PowerShell 7，安装 `global.json` 指定的 .NET SDK 10.0.400。
 
 脚本执行锁定依赖还原、C# 回归测试、.NET/Windows App SDK 自包含发布，收集许可并用发布 EXE 转换测试图纸，然后生成安装包和 `dist/CAD2NC-source.zip` 对应源码。前次目录移入 `build/previous-release-*` 保留。需要便携 ZIP 时运行 `.\build.ps1 -PortableZip`；便携目录仍须整体保留。
 
-图标原图及多尺寸资源位于 `src/Cad2Nc.App/Assets`；`scripts/prepare_icons.ps1` 可从源图重新生成图标，无需图像服务或 Python。安装包、应用和 CLI 摘要的版本来自统一构建版本。
+图标原图及多尺寸资源位于 `src/Cad2Nc.App/Assets`；`scripts/prepare_icons.ps1` 可从源图重新生成图标，无需图像服务或 Python。版本唯一来源为 `Directory.Build.props` 中的 `Version`；程序集、Windows 应用清单、安装包和 CLI 摘要均从它派生。
 
 除系统安装的 SDK 外，也可通过 `python scripts/prepare_dotnet.py` 下载并验证官方 SDK 到 `.tools/dotnet`，此脚本仅用于开发机准备，发布程序不依赖 Python。受限开发环境的 NuGet HTTPS 传输问题可用 `scripts/nuget_bridge.py` 提供仅绑定回环地址的开发代理；正常构建直接使用官方 NuGet。
 
@@ -119,7 +119,7 @@ CLI 默认使用宝元内置值，不读取桌面应用保存的启动默认。�
 
 `--include-outer` 将母板候选加入加工选择，但在 `sheet` 原点模式下，作为原点基准的指定母板仍会被排除，不能用这个开关加工它。`--accept-converter-diagnostics` 保留为诊断确认的兼容别名；无单位图纸需核对后使用 `--assume-mm`。
 
-推送与应用版本一致的 `v*` tag（当前为 `v2.6.4`）后，GitHub Actions 会在构建、测试和依赖审计全部通过后自动发布 Release，提供安装 EXE、对应源码 ZIP 和 SHA-256 校验文件。分支 push 和 pull request 只做检查。发布命令及重跑方式见 [开发与发布检查](docs/DEVELOPMENT.md)，其中也说明了独立依赖审计、源码打包和历史 UI 脚本的使用边界。普通构建通过不代表依赖审计或独立机器验收通过。
+推送与应用版本一致的稳定版 tag（当前为 `v2.7.0`）后，GitHub Actions 会在构建、测试和依赖审计全部通过后自动发布 Release，提供安装 EXE、对应源码 ZIP 和 SHA-256 校验文件。修复递增修订号，兼容的新功能递增次版本，不兼容的改动递增主版本；已发布的 tag 和下载文件不覆盖。分支 push 和 pull request 只做检查。版本规则、发布命令及草稿重跑方式见 [开发与发布检查](docs/DEVELOPMENT.md)。普通构建通过不代表依赖审计或独立机器验收通过。
 
 ## 源码结构与回归
 
@@ -131,7 +131,7 @@ CLI 默认使用宝元内置值，不读取桌面应用保存的启动默认。�
 | `src/Cad2Nc.Cli` | 开发与自动化控制台入口 |
 | `tests/Cad2Nc.Tests` | C# 核心、导入、状态、持久化、打开请求及命令行回归 |
 
-当前 2.6.4 可复现示例使用仓库内的合成 DXF，见 [示例与生成命令](examples/README.md)。真实图纸的旧 NC 和摘要保留为 2.6.1 历史示例，已脱敏路径，原始私人 DWG 未公开。详见 [验证与尚待实测项](docs/VALIDATION.md)。仓库不再包含旧 Python/LibreDWG 实现、运行时或构建产物。
+当前 2.7.0 可复现示例使用仓库内的合成 DXF，见 [示例与生成命令](examples/README.md)。2.6.4 合成示例及 2.6.1 真实图纸旧输出保留为历史记录，原始私人 DWG 未公开。详见 [验证与尚待实测项](docs/VALIDATION.md)。仓库不再包含旧 Python/LibreDWG 实现、运行时或构建产物。
 
 CAD2NC 自有代码沿用 [GPL v3](LICENSE)。发布依赖与原始条款见 [第三方声明](docs/THIRD_PARTY_V2.md) 和 `LICENSES/v2`。
 

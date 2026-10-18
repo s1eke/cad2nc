@@ -13,8 +13,14 @@ $version = [string]$props.Version
 if ($version -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$') {
     throw "Release version must be major.minor.patch: $version"
 }
-if ([string]$props.AssemblyVersion -cne "$version.0" -or [string]$props.FileVersion -cne "$version.0") {
-    throw 'Version, AssemblyVersion and FileVersion must describe the same release.'
+foreach ($part in $version.Split('.')) {
+    $number = 0
+    if (-not [int]::TryParse($part, [ref]$number) -or $number -gt 65534) {
+        throw 'Version components must be in 0..65534 for Windows and .NET versions.'
+    }
+}
+if ([string]$props.AssemblyVersion -cne '$(Version).0' -or [string]$props.FileVersion -cne '$(Version).0') {
+    throw 'AssemblyVersion and FileVersion must be derived from Version using $(Version).0.'
 }
 if ($Tag -and $Tag -cne "v$version") { throw "Tag '$Tag' must match the application version: v$version" }
 $notes = Join-Path $root "docs/RELEASE-$version.md"
@@ -42,4 +48,4 @@ if ($ArtifactsDirectory) {
         $assets.Add($path); $assets.Add($sidecar)
     }
 }
-[pscustomobject]@{ Version = $version; Tag = $Tag; NotesPath = $notes; Assets = $assets.ToArray() }
+[pscustomobject]@{ Version = $version; WindowsVersion = "$version.0"; Tag = $Tag; NotesPath = $notes; Assets = $assets.ToArray() }

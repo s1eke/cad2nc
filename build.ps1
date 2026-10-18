@@ -55,6 +55,7 @@ try {
     }
     & $dotnet publish src/Cad2Nc.App/Cad2Nc.App.csproj --no-restore -c $Configuration -r win-x64 --self-contained true -o $stage '-p:NuGetAudit=false'
     Assert-NativeSuccess 'Publish'
+    & (Join-Path $projectRoot 'scripts/verify_published_version.ps1') -PublishDirectory $stage
     Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE') -Destination $stage
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/PORTABLE.md') -Destination (Join-Path $stage '使用说明.md')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/PORTABLE.md') -Destination (Join-Path $stage 'PORTABLE.md')

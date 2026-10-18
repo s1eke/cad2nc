@@ -1,6 +1,6 @@
 # CAD2NC 安装与升级
 
-运行 `CAD2NC-Setup-2.6.4-x64.exe`，向导会自动判断是首次安装、更新还是重新安装，并显示对应说明。首次安装默认放到当前用户的 `%LOCALAPPDATA%\Programs\CAD2NC`，不需要管理员权限；完成后可从开始菜单或桌面快捷方式启动。桌面快捷方式默认勾选，可在首次安装向导中取消。
+从 [GitHub Releases](https://github.com/s1eke/cad2nc/releases) 下载并运行 `CAD2NC-Setup-2.7.0-x64.exe`，向导会自动判断是首次安装、更新还是重新安装，并显示对应说明。首次安装默认放到当前用户的 `%LOCALAPPDATA%\Programs\CAD2NC`，不需要管理员权限；完成后可从开始菜单或桌面快捷方式启动。桌面快捷方式默认勾选，可在首次安装向导中取消。
 
 安装包已包含 .NET、Windows App SDK 和应用运行资源。使用时不需要联网下载运行库，也不需要另装 Python、CAD 软件或 LibreDWG。请通过正常快捷方式启动，避免“以管理员身份运行”带来的文件拖放权限差异。不会更改 DWG / DXF 的默认打开程序。
 
@@ -57,7 +57,7 @@ pwsh -File build.ps1
 
 准备脚本校验官方安装器固定 SHA-256 和 Authenticode 签名，并使用官方 `/PORTABLE=1` 模式放入 `.tools/inno-setup/7.1.0`，不注册编译器文件关联、快捷方式或系统卸载项。网络受限时可从[官方固定版本](https://github.com/jrsoftware/issrc/releases/tag/is-7_1_0)取得文件，再传入 `-InstallerPath`；离线文件也必须通过相同校验。
 
-主构建脚本执行还原、回归测试、自包含发布和发布 EXE 转换自检，然后生成 `dist/CAD2NC-Setup-2.6.4-x64.exe`、对应 `.sha256` 校验文件和 `dist/CAD2NC-source.zip`。`dist/CAD2NC` 保留完整安装载荷用于验收。需要额外便携 ZIP 时运行 `pwsh -File build.ps1 -PortableZip`。
+主构建脚本执行还原、回归测试、自包含发布和发布 EXE 转换自检，然后生成 `dist/CAD2NC-Setup-2.7.0-x64.exe`、对应 `.sha256` 校验文件和 `dist/CAD2NC-source.zip`。`dist/CAD2NC` 保留完整安装载荷用于验收。版本由 `Directory.Build.props` 中的 `Version` 统一派生；需要额外便携 ZIP 时运行 `pwsh -File build.ps1 -PortableZip`。tag 发布流程见 [开发与发布检查](DEVELOPMENT.md)。
 
 已准备完整且版本匹配的发布载荷后，可单独重新编译安装器：
 
