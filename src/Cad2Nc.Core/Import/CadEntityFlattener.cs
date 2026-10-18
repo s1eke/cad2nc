@@ -37,7 +37,7 @@ internal readonly record struct CadTransform(CadVector X, CadVector Y, CadVector
     }
 }
 
-internal sealed record CadLineRecord(string Layer, string EntityType, string Handle, LineString Line);
+internal sealed record CadLineRecord(string Layer, string EntityType, string Handle, LineString Line, bool IsCircle = false);
 
 /// <summary>
 /// Interprets source primitives without ACadSharp's Explode/PolygonalVertexes helpers.
@@ -117,6 +117,7 @@ internal sealed class CadEntityFlattener
 
         List<CadVector>? points;
         var closed = false;
+        var isCircle = false;
         switch (entity)
         {
             case Line line:
@@ -127,6 +128,15 @@ internal sealed class CadEntityFlattener
                 break;
             case Circle circle:
                 points = CirclePoints(circle, transform, 0, Math.Tau); closed = true;
+                var circleTransform = transform.Then(CadTransform.Ocs(circle.Normal));
+                var u = circleTransform.Vector(new(1, 0, 0));
+                var v = circleTransform.Vector(new(0, 1, 0));
+                var uSquared = u.X * u.X + u.Y * u.Y;
+                var vSquared = v.X * v.X + v.Y * v.Y;
+                var tolerance = Math.Max(uSquared, vSquared) * 1e-10;
+                // Nonuniform block scaling can turn a source CIRCLE into an ellipse.
+                isCircle = uSquared > 0 && Math.Abs(uSquared - vSquared) <= tolerance &&
+                    Math.Abs(u.X * v.X + u.Y * v.Y) <= tolerance;
                 break;
             case Ellipse ellipse:
                 var major = CadVector.From(ellipse.MajorAxisEndPoint);
@@ -170,7 +180,7 @@ internal sealed class CadEntityFlattener
                 ignored[type] = ignored.GetValueOrDefault(type) + 1;
                 return;
         }
-        AddLine(points, closed, layer, entity.ObjectName, entity.Handle);
+        AddLine(points, closed, layer, entity.ObjectName, entity.Handle, isCircle);
     }
 
     private void CheckControlCount(int count)
@@ -179,7 +189,7 @@ internal sealed class CadEntityFlattener
             throw new CadImportException("CAD entity exceeds the control vertex resource limit.");
     }
 
-    private void AddLine(List<CadVector> points, bool closed, string layer, string type, ulong handle)
+    private void AddLine(List<CadVector> points, bool closed, string layer, string type, ulong handle, bool isCircle)
     {
         if (points.Count < 2) throw new CadImportException($"{type} {handle:X} produced no path.");
         ValidateBounds(points);
@@ -198,7 +208,7 @@ internal sealed class CadEntityFlattener
         ReserveVertices(coordinates.Count);
         var geometry = factory.CreateLineString(coordinates.ToArray());
         if (!geometry.IsSimple) throw new CadImportException($"Self-intersecting {type} {handle:X} on layer '{layer}'.");
-        if (geometry.Length > 1e-9) lines.Add(new(layer, type, handle.ToString("X"), geometry));
+        if (geometry.Length > 1e-9) lines.Add(new(layer, type, handle.ToString("X"), geometry, isCircle));
     }
 
     private void ReserveVertices(int count)

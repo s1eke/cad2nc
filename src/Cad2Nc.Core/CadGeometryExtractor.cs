@@ -71,6 +71,9 @@ public sealed class CadGeometryExtractor
                 RequiresConfirmation: true, Count: flattener.Ignored.Values.Sum()));
         var polygons = Polygonize(lines, messages, cancellationToken);
         var contours = MarkSheetFrames(polygons, cancellationToken);
+        foreach (var contour in contours.Where(c => c.DefaultCutSide == CutSide.Inside))
+            messages.Add(new("geometry.circular_hole", "已识别为零件内部圆孔，默认设为内侧加工，可手动修改。",
+                DiagnosticSeverity.Information, contour.Id));
         for (var i = 0; i < polygons.Count; i++)
             if (polygons[i].MergedCount > 0)
                 messages.Add(new("geometry.duplicate_contour",
@@ -82,7 +85,7 @@ public sealed class CadGeometryExtractor
         return new(new(sourcePath, sourceHash, contours, messages.ToImmutableArray(), unitCode == 0));
     }
 
-    internal sealed record RingRecord(string Layer, Polygon Polygon, string[] Types, int MergedCount = 0);
+    internal sealed record RingRecord(string Layer, Polygon Polygon, string[] Types, int MergedCount = 0, bool IsCircle = false);
 
     private List<RingRecord> Polygonize(List<CadLineRecord> records, List<Diagnostic> diagnostics, CancellationToken token)
     {
@@ -109,6 +112,16 @@ public sealed class CadGeometryExtractor
                 if (issues > 0)
                     diagnostics.Add(new("geometry.open_linework", $"图层「{layer}」有 {issues} 段 open or invalid linework，未生成轮廓。", RequiresConfirmation: true, Count: issues));
                 var types = sourceLines.Select(r => r.EntityType).Distinct().Order(StringComparer.Ordinal).ToArray();
+                // Layer-level entity types are shared by every ring on that layer.
+                // Match the actual source circle boundary before assigning a hole default.
+                var circles = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var source in sourceLines.Where(r => r.IsCircle))
+                {
+                    token.ThrowIfCancellationRequested();
+                    var circle = factory.CreatePolygon(source.Line.Coordinates);
+                    circle.Normalize();
+                    circles.Add(Convert.ToHexString(circle.AsBinary()));
+                }
                 foreach (var face in faces.Cast<Polygon>())
                 {
                     AddRing((LinearRing)face.ExteriorRing);
@@ -130,7 +143,7 @@ public sealed class CadGeometryExtractor
                     if (result.Count >= options.Limits.MaxClosedContours) throw new CadImportException("Drawing exceeds the closed contours resource limit.");
                     seenRings.Add(key, layer);
                     if (!Orientation.IsCCW(polygon.ExteriorRing.Coordinates)) polygon = (Polygon)polygon.Reverse();
-                    result.Add(new(layer, polygon, types));
+                    result.Add(new(layer, polygon, types, IsCircle: circles.Contains(key)));
                 }
             }
             catch (OperationCanceledException) { throw; }
@@ -178,7 +191,8 @@ public sealed class CadGeometryExtractor
                 result[duplicateIndex] = previous with
                 {
                     MergedCount = previous.MergedCount + record.MergedCount + 1,
-                    Types = previous.Types.Concat(record.Types).Distinct().Order(StringComparer.Ordinal).ToArray()
+                    Types = previous.Types.Concat(record.Types).Distinct().Order(StringComparer.Ordinal).ToArray(),
+                    IsCircle = previous.IsCircle || record.IsCircle
                 };
                 break;
             }
@@ -295,6 +309,21 @@ public sealed class CadGeometryExtractor
             if (!nested && !contour.IsOuterCandidate && MatchesDefaultSheetSize(contour.Bounds) && ToolpathPlanner.IsSheetRectangle(contour))
                 contour = new(contour.Id, contour.Layer, contour.Geometry, true, contour.SourceEntityTypes);
             result.Add(contour);
+        }
+        for (var i = 0; i < records.Count; i++)
+        {
+            token.ThrowIfCancellationRequested();
+            if (!records[i].IsCircle || result[i].IsOuterCandidate) continue;
+            var polygon = polygons[i];
+            var candidates = polygonTree.Query(polygon.EnvelopeInternal).Where(j => j != i).ToArray();
+            var hosts = candidates.Where(j => !result[j].IsOuterCandidate && polygons[j].Area > polygon.Area &&
+                polygons[j].Covers(polygon)).Take(2).ToArray();
+            // A circle directly on stock can be a round part. Deeper nesting or
+            // contained boundaries are ambiguous, so retain the manual workflow.
+            if (hosts.Length != 1 || !polygons[hosts[0]].Boundary.Disjoint(polygon.Boundary) ||
+                candidates.Any(j => polygon.Covers(polygons[j]))) continue;
+            var contour = result[i];
+            result[i] = new(contour.Id, contour.Layer, polygon, contour.IsOuterCandidate, contour.SourceEntityTypes, CutSide.Inside);
         }
         return result.MoveToImmutable();
     }

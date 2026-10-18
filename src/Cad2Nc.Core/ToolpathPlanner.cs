@@ -54,7 +54,7 @@ public static class ToolpathPlanner
         {
             var isSheet = contour.Id == sheetId ||
                 (sheetId is null && contour.Id == configuredSheetId && IsSheetRectangle(contour));
-            var selection = request.Selection.GetValueOrDefault(contour.Id) ?? new ContourSelection(!contour.IsOuterCandidate && !isSheet);
+            var selection = request.Selection.GetValueOrDefault(contour.Id) ?? new ContourSelection(!contour.IsOuterCandidate && !isSheet, contour.DefaultCutSide);
             if (!Enum.IsDefined(selection.Side))
                 throw new ToolpathGenerationException($"轮廓 {contour.Id} 的加工侧无效。");
             return new Source(contour, contour.Geometry, selection, isSheet);

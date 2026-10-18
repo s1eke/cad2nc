@@ -180,17 +180,20 @@ public sealed class Contour
     public string Id { get; }
     public string Layer { get; }
     public bool IsOuterCandidate { get; }
+    public CutSide DefaultCutSide { get; }
     public ImmutableArray<string> SourceEntityTypes { get; }
     public Polygon Geometry => (Polygon)geometry.Copy();
     public ImmutableArray<Point2> Points { get; }
     public Bounds2 Bounds { get; }
     public double Area => geometry.Area;
     public string Fingerprint { get; }
-    public Contour(string id, string layer, Polygon geometry, bool isOuterCandidate = false, IEnumerable<string>? sourceEntityTypes = null)
+    public Contour(string id, string layer, Polygon geometry, bool isOuterCandidate = false, IEnumerable<string>? sourceEntityTypes = null,
+        CutSide defaultCutSide = CutSide.Outside)
     {
         if (string.IsNullOrWhiteSpace(id) || geometry.IsEmpty || geometry.Area <= 0 || !geometry.IsValid)
             throw new ArgumentException("轮廓必须是有效的非空闭环");
         Id = id; Layer = layer; this.geometry = (Polygon)geometry.Copy(); IsOuterCandidate = isOuterCandidate;
+        DefaultCutSide = defaultCutSide;
         SourceEntityTypes = (sourceEntityTypes ?? []).ToImmutableArray();
         Points = geometry.ExteriorRing.Coordinates.Select(c => new Point2(c.X, c.Y)).ToImmutableArray();
         Bounds = Bounds2.FromPoints(Points);
@@ -204,7 +207,7 @@ public sealed record CadDocument(string SourcePath, string SourceHash, Immutable
 {
     public string Id => SourceHash;
     public bool RequiresDiagnosticsConfirmation => Diagnostics.Any(d => d.RequiresConfirmation);
-    public ImmutableDictionary<string, ContourSelection> DefaultSelection => Contours.ToImmutableDictionary(c => c.Id, c => new ContourSelection(!c.IsOuterCandidate, CutSide.Outside));
+    public ImmutableDictionary<string, ContourSelection> DefaultSelection => Contours.ToImmutableDictionary(c => c.Id, c => new ContourSelection(!c.IsOuterCandidate, c.DefaultCutSide));
 }
 
 public sealed record CadImportResult(CadDocument Document)
